@@ -49,6 +49,7 @@ WAKE_UP_DURATION_IN_SECS 	= 30 * 60 	# 30 minutes
 def main(argv):
 	desiredColor = DEFAULT_COLOR
 	argColor = False
+	duration = WAKE_UP_DURATION_IN_SECS
 	
 	try:
 		opts, args = getopt.getopt(argv,"hd:r:g:b:")
@@ -61,7 +62,7 @@ def main(argv):
 			print 'usage: wakeup2.py -d <durationInSeconds> -r <red> -g <green> -b <blue>'
 			sys.exit(2)
 		elif opt in ("-d"):
-			WAKE_UP_DURATION_IN_SECS = int(arg)
+			duration = int(arg)
 		elif opt in ("-r"):
 			if argColor is False:
 				desiredColor = [0, 0, 0]
@@ -81,7 +82,7 @@ def main(argv):
 			
 			desiredColor[2] = float(arg)
 			
-	INCREMENT = MAX_BRIGHTNESS / WAKE_UP_DURATION_IN_SECS	
+	INCREMENT = MAX_BRIGHTNESS / duration	
 		
 	pi = pigpio.pi()
 	curColor = [0, 0, 0] # order: rgb
@@ -89,7 +90,7 @@ def main(argv):
 
 	print '\n---- START ----'
 	print 'Desired Color [RGB]:\t' , (desiredColor)
-	print 'Duration [s]:\t\t' , WAKE_UP_DURATION_IN_SECS
+	print 'Duration [s]:\t\t' , duration
 	print 'Calc. Increment:\t' , INCREMENT
 	print 'Current Brightness [%]: ' , curBrightness * 100.0 / MAX_BRIGHTNESS
 	print '\n'
