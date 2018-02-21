@@ -27,12 +27,14 @@ import getopt
 import time
 import pigpio
 
+# Some colors
+
+JAEGERMEISTER = [255, 70, 0]
+
 # START CONFIG
 
 MAX_BRIGHTNESS = 255.0
-
-# The Color
-DESIRED_COLORS = [255, 70, 0]	# order: RGB
+DEFAULT_COLOR = JAEGERMEISTER # order RGB
 
 # The Pins. Use Broadcom numbers.
 RED_PIN   	= 17
@@ -45,6 +47,9 @@ WAKE_UP_DURATION_IN_SECS 	= 30 * 60 	# 30 minutes
 # END CONFIG
 
 def main(argv):
+	desiredColor = DEFAULT_COLOR
+	argColor = False
+	
 	try:
 		opts, args = getopt.getopt(argv,"hd:r:g:b:")
 	except getopt.GetoptError:
@@ -58,45 +63,57 @@ def main(argv):
 		elif opt in ("-d"):
 			WAKE_UP_DURATION_IN_SECS = int(arg)
 		elif opt in ("-r"):
-			DESIRED_COLORS[0] = float(arg)
+			if argColor is False:
+				desiredColor = [0, 0, 0]
+				argColor = True
+
+			desiredColor[0] = float(arg)
 		elif opt in ("-g"):
-			DESIRED_COLORS[1] = float(arg)
+			if argColor is False:
+				desiredColor = [0, 0, 0]
+				argColor = True
+			
+			desiredColor[1] = float(arg)
 		elif opt in ("-b"):
-			DESIRED_COLORS[2] = float(arg)
+			if argColor is False:
+				desiredColor = [0, 0, 0]
+				argColor = True
+			
+			desiredColor[2] = float(arg)
 			
 	INCREMENT = MAX_BRIGHTNESS / WAKE_UP_DURATION_IN_SECS	
 		
 	pi = pigpio.pi()
-	curColors = [0, 0, 0] # order: rgb
+	curColor = [0, 0, 0] # order: rgb
 	curBrightness = 0
 
 	print '\n---- START ----'
-	print 'Desired Color [RGB]:\t' , (DESIRED_COLORS)
+	print 'Desired Color [RGB]:\t' , (desiredColor)
 	print 'Duration [s]:\t\t' , WAKE_UP_DURATION_IN_SECS
 	print 'Calc. Increment:\t' , INCREMENT
 	print 'Current Brightness [%]: ' , curBrightness * 100.0 / MAX_BRIGHTNESS
 	print '\n'
 
 	# reset brightness for each color/pin
-	for index in range(len(curColors)) :
-		curColors[index] = curBrightness
-        pi.set_PWM_dutycycle(PINS[index], curColors[index])
+	for index in range(len(curColor)) :
+		curColor[index] = curBrightness
+        pi.set_PWM_dutycycle(PINS[index], curColor[index])
         
-	desiredColorsFraction = [0.0, 0.0, 0.0];        
-	for index in range(len(DESIRED_COLORS)) :      
-		desiredColorsFraction[index] = DESIRED_COLORS[index] / MAX_BRIGHTNESS    
+	colorFractions = [0.0, 0.0, 0.0];        
+	for index in range(len(desiredColor)) :      
+		colorFractions[index] = desiredColor[index] / MAX_BRIGHTNESS    
         
 	# start sunrise simulation       
 	while (curBrightness < MAX_BRIGHTNESS) :
 		curBrightness += INCREMENT
 	
 		# set new brightness for each color/pin
-		for index in range(len(curColors)) :
-			curColors[index] = curBrightness * desiredColorsFraction[index]
-			pi.set_PWM_dutycycle(PINS[index], curColors[index])
+		for index in range(len(curColor)) :
+			curColor[index] = curBrightness * colorFractions[index]
+			pi.set_PWM_dutycycle(PINS[index], curColor[index])
 		
 		print 'Current Brightness [%]: ' , curBrightness * 100.0 / MAX_BRIGHTNESS
-		# print 'Current Colors: ' , (curColors)
+		# print 'Current Colors: ' , (curColor)
 		
 		time.sleep(1)
 	return 0
